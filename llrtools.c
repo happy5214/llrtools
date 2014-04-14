@@ -1,9 +1,11 @@
 /*********************************
  *  llrtools.c                   *
- *  v0.02  2005-10-02            *
+ *  v0.03  2008-12-03            *
  *********************************/
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <math.h>
 #include "llrtools.h"
 
@@ -99,7 +101,7 @@ long nmax_from_fftlen(long k, long fftlen, long n_mersenne)
    This might be wrong for a few cases in the range k = 1-1.3M */
 
   if (k < 1048576)        /* is k < 2^20 ??? */
-    nmax = n_mersenne -= (long)(log2k + log2k*(double)(fftlen/2));
+    nmax = n_mersenne - (long)(log2k + log2k*(double)(fftlen/2));
   else                    /* zero-padded FFT is used, if k > 2^20 */
     nmax = (long)(((double)n_mersenne + (double)fftlen*0.3)/2.0);
 
@@ -157,7 +159,7 @@ double compute_average_time(long k, long nmin, long nmax)
    This function increases linearly with n for constant fftlen,
    but has steps at the FFT switching points.
 
-   T_tot = (msecs(n_max)*n_max*n_max - msecs(n_min*n_min*n_min) / 2.0
+   T_tot = (msecs(n_max)*n_max*n_max - msecs(n_min)*n_min*n_min) / 2.0
           - Sum(n_i*n_i*(msecs(n_(i+1)) - msecs(n_i)) / 2.0) ,
 
    where the Sum runs over the FFT intervals and 
