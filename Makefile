@@ -2,17 +2,34 @@
 
 CC = gcc
 LIBS = -lm
+FLAGS = -O2
 
-all: av_time fft_len get_time
+objs = llrtools.o
 
-av_time: llrtools.o av_time.o
-	$(CC) -o av_time llrtools.o av_time.o $(LIBS)
+libllrtools_so = libllrtools.so
+libllrtools_objs = $(objs)
 
-fft_len: llrtools.o fft_len.o
-	$(CC) -o fft_len llrtools.o fft_len.o $(LIBS)
+av_time_objs = av_time.o $(objs)
+fft_len_objs = fft_len.o $(objs)
+get_time_objs = get_time.o $(objs)
 
-get_time: llrtools.o get_time.o
-	$(CC) -o get_time llrtools.o get_time.o $(LIBS)
+.PHONY: all libllrtools
 
-.c.o:
-	$(CC) -c $<
+all: av_time fft_len get_time libllrtools
+
+libllrtools: $(libllrtools_so)
+
+libllrtools.so: $(libllrtools_objs)
+	$(CC) -shared -o $@ $(libllrtools_objs)
+
+av_time: $(av_time_objs)
+	$(CC) -o $@ $(av_time_objs) $(LIBS)
+
+fft_len: $(fft_len_objs)
+	$(CC) -o $@ $(fft_len_objs) $(LIBS)
+
+get_time: $(get_time_objs)
+	$(CC) -o $@ $(get_time_objs) $(LIBS)
+
+%.o: %.c
+	$(CC) -c -o $@ $< $(FLAGS)
