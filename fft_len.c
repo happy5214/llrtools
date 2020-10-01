@@ -11,15 +11,18 @@ int main(void)
 {
   long k, nmin, nmax;
   int i;
+  llrtools_data_t data;
 
-  nfft = read_maxlen_file();          /* initialize fftlen and nmers arrays */
+  if (!read_maxlen_file(&data, "maxlen.txt")) {    /* init fftlen and nmers arrays */
+    return 1;
+  }
 
   printf("k = "); scanf("%ld", &k);
 
   printf("n(min) = "); scanf("%ld", &nmin);
   printf("n(max) = "); scanf("%ld", &nmax);
 
-  generate_list(k, nmin, nmax);
+  generate_list(&data, k, nmin, nmax);
 
   return (0);
 }
