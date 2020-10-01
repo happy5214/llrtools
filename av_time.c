@@ -5,9 +5,11 @@
  ********************************************/
  
 #include <stdio.h>
+#include <string.h>
+
 #include "llrtools.h"
 
-int main(void)
+int main(int argc, char *argv[])
 {
   long k, nmin, nmax;
   double average_time;
@@ -15,8 +17,18 @@ int main(void)
   int i;
   llrtools_data_t data;
 
-  if (!read_maxlen_file(&data, "maxlen.txt") ||    /* init fftlen and nmers arrays */
-      !read_msecs_file(&data, "times.txt")) {      /* read timings from file */
+  char maxlen_filename[30];
+  char times_filename[30];
+  if (argc >= 2) {
+    snprintf(maxlen_filename, 30, "maxlen/%s", argv[1]);
+    snprintf(times_filename, 30, "times/%s", argv[1]);
+  } else {
+    strcpy(maxlen_filename, "maxlen/default");
+    strcpy(times_filename, "times/default");
+  }
+
+  if (!read_maxlen_file(&data, maxlen_filename) ||    /* init fftlen and nmers arrays */
+      !read_msecs_file(&data, times_filename)) {      /* read timings from file */
     return 1;
   }
 
@@ -32,5 +44,5 @@ int main(void)
   if (k > 1048576)          /* in case of zero-padding */
     printf("Warning: estimated time may be wrong by about 10 percent!\n");
 
-  return (0);
+  return 0;
 }
