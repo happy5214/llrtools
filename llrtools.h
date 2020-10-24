@@ -1,11 +1,16 @@
 /* llrtools.h */
 
+#ifndef LLRTOOLS_H
+#define LLRTOOLS_H 1
+
+#define FFTLEN_SIZE 100
+
 typedef struct {
-	long fftlen[100];   /* list of FFT lengths */
-	long n_mers[100];   /* list of n_max (Mersenne) for FFT lengths */
-	double msecs[100];  /* list of times per iteration (msecs) for FFT lengths */
-	int n_fft;          /* number of FFT lengths in file maxlen.txt */
-	int n_times;        /* number of (fftlen, msecs) pairs */
+	long fftlen[FFTLEN_SIZE];   /* list of FFT lengths */
+	long n_mers[FFTLEN_SIZE];   /* list of n_max (Mersenne) for FFT lengths */
+	double msecs[FFTLEN_SIZE];  /* list of times per iteration (msecs) for FFT lengths */
+	int n_fft;                  /* number of FFT lengths in file maxlen.txt */
+	int n_times;                /* number of (fftlen, msecs) pairs */
 } llrtools_data_t;
 
 typedef struct {
@@ -20,3 +25,5 @@ int fftlen_from_k_and_n(llrtools_data_t *data, long k, long n);
 double compute_average_time(llrtools_data_t *data, long k, long nmin, long nmax);
 void generate_list(llrtools_data_t *data, long k, long nmin, long nmax);
 llrtools_times_t get_times(char *llr_file_name, char *maxlen_file_name, char *msecs_file_name);
+
+#endif // LLRTOOLS_H
