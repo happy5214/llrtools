@@ -17,10 +17,10 @@ int main(void)
     return 1;
   }
 
-  printf("k = "); scanf("%ld", &k);
+  printf("\033[3mk\033[m = "); scanf("%ld", &k);
 
-  printf("n(min) = "); scanf("%ld", &nmin);
-  printf("n(max) = "); scanf("%ld", &nmax);
+  printf("\033[3mn\033[m (min) = "); scanf("%ld", &nmin);
+  printf("\033[3mn\033[m (max) = "); scanf("%ld", &nmax);
 
   generate_list(&data, k, nmin, nmax);
 
