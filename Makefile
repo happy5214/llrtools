@@ -31,5 +31,5 @@ fft_len: $(fft_len_objs)
 get_time: $(get_time_objs)
 	$(CC) -o $@ $(get_time_objs) $(LIBS)
 
-%.o: %.c
+%.o: %.c llrtools.h
 	$(CC) -c -o $@ $< $(FLAGS)
