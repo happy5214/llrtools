@@ -13,6 +13,8 @@ int main(void)
   int i;
   llrtools_data_t data;
 
+  data.errors[0] = '\0';
+
   if (!read_maxlen_file(&data, "maxlen.txt")) {    /* init fftlen and nmers arrays */
     return 1;
   }

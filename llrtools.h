@@ -3,7 +3,10 @@
 #ifndef LLRTOOLS_H
 #define LLRTOOLS_H 1
 
+#define MAX(a,b) ((a) > (b)? (a) : (b))
+
 #define FFTLEN_SIZE 100
+#define ERROR_SIZE 500
 
 #define IT_ON "\033[3m"
 #define IT_OFF "\033[m"
@@ -14,6 +17,7 @@ typedef struct {
 	double msecs[FFTLEN_SIZE];  /* list of times per iteration (msecs) for FFT lengths */
 	int n_fft;                  /* number of FFT lengths in file maxlen.txt */
 	int n_times;                /* number of (fftlen, msecs) pairs */
+	char errors[ERROR_SIZE];    /* error messages */
 } llrtools_data_t;
 
 typedef struct {

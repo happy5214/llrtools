@@ -2,7 +2,7 @@
 
 CC = gcc
 LIBS = -lm
-FLAGS = -O2
+FLAGS = -O2 -fPIC
 
 objs = llrtools.o
 

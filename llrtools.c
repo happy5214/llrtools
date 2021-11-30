@@ -9,10 +9,13 @@
 #include <math.h>
 #include "llrtools.h"
 
+static void append_error(llrtools_data_t *data, char *new_error);
+
 int read_msecs_file(llrtools_data_t *data, char *file_name)      /* read timings from file */
 {
   FILE *ms_file;
   char string[100];
+  char errorString[100];
   long fft;
   float ms;
   int i, j;
@@ -20,7 +23,8 @@ int read_msecs_file(llrtools_data_t *data, char *file_name)      /* read timings
   ms_file = fopen(file_name, "rt");
   if (ms_file == NULL)
   {
-    printf("msecs file %s not readable!\n", file_name);
+    snprintf(errorString, 100, "msecs file %s not readable!", file_name);
+    append_error(data, errorString);
     return 0;
   }
 
@@ -41,9 +45,10 @@ int read_msecs_file(llrtools_data_t *data, char *file_name)      /* read timings
       j = 0;
       while ((fft != data->fftlen[j]) && (j < data->n_fft))  /* look for matching fftlen */
         j++;
-      if (j == data->n_fft)
-        printf("*** WARNING: timings on fftlen = %ld will be ignored!\n", fft);
-      else
+      if (j == data->n_fft) {
+        snprintf(errorString, 100, "*** WARNING: timings on fftlen = %ld will be ignored!", fft);
+        append_error(data, errorString);
+	  } else
         data->msecs[j] = (double) ms;
       i++;
     }
@@ -57,6 +62,7 @@ int read_maxlen_file(llrtools_data_t *data, char *file_name)    /* read a list o
 {
   FILE *mx_file;
   char string[100];
+  char errorString[100];
   long fft, max_n;
   int i;
 
@@ -64,7 +70,8 @@ int read_maxlen_file(llrtools_data_t *data, char *file_name)    /* read a list o
   mx_file = fopen(file_name, "rt");
   if (mx_file == NULL)
   {
-    printf("maxlen file %s not readable!\n", file_name);
+    snprintf(errorString, 100, "maxlen file %s not readable!", file_name);
+    append_error(data, errorString);
     return 0;
   }
 
@@ -84,11 +91,11 @@ int read_maxlen_file(llrtools_data_t *data, char *file_name)    /* read a list o
   return 1;
 }
 
-static long nmax_from_fftlen(long k, long fftlen, long n_mersenne)
+static long n_max_from_fftlen(long k, long fftlen, long n_mersenne)
 /* find the max. allowed n for given k and fftlen */
 /* This is adapted from George Woltmans gwnum v24.14 */
 {
-  long nmax;
+  long n_max;
   double log2k;
   log2k = log((double) k) / log(2.0);
 
@@ -99,61 +106,74 @@ static long nmax_from_fftlen(long k, long fftlen, long n_mersenne)
    This might be wrong for a few cases in the range k = 1-1.3M */
 
   if (k < 1048576)        /* is k < 2^20 ??? */
-    nmax = n_mersenne - (long)(log2k + log2k*(double)(fftlen/2));
+    n_max = n_mersenne - (long)(log2k + log2k*(double)(fftlen/2));
   else                    /* zero-padded FFT is used, if k > 2^20 */
-    nmax = (long)(((double)n_mersenne + (double)fftlen*0.3)/2.0);
+    n_max = (long)(((double)n_mersenne + (double)fftlen*0.3)/2.0);
 
-  nmax--;                 /* decrement nmax by one */
-  return (nmax);
+  n_max--;                 /* decrement n_max by one */
+  return n_max;
 }
 
 int fftlen_from_k_and_n(llrtools_data_t *data, long k, long n)
 /* find the appropriate fftlen for given k and n */
 /* returns the index in array fftlen */
 {
-  long nmax;
+  long n_max;
   int i;
   i = 0;
-  nmax = nmax_from_fftlen(k, data->fftlen[i], data->n_mers[i]);
-  while (nmax < n)
+  n_max = n_max_from_fftlen(k, data->fftlen[i], data->n_mers[i]);
+  while (n_max < n)
   {
     i++;
-    nmax = nmax_from_fftlen(k, data->fftlen[i], data->n_mers[i]);
+    n_max = n_max_from_fftlen(k, data->fftlen[i], data->n_mers[i]);
   }
-  return (i);
+  return i;
 }
 
-double compute_average_time(llrtools_data_t *data, long k, long nmin, long nmax)
-/* Get the average time for the range (nmin,nmax) with k fixed. */
+double compute_average_time(llrtools_data_t *data, long k, long n_min, long n_max)
+/* Get the average time for the range (n_min,n_max) with k fixed. */
 {
+  char errorString[100];
   double t_average, T_tot;
   int i;
-  int imin, imax;
+  int i_min, i_max;
   long n;
+
+/* Clean up n values */
+  n_min = MAX(n_min, 1);
+  n_max = MAX(n_max, 1);
+  if (n_min == n_max) {
+      n_max++;
+  } else if (n_min > n_max) {
+      n = n_max;
+      n_max = n_min;
+      n_min = n;
+  }
 /* First, find the min. and max. FFT lengths */
   i = 0;
-  n = nmax_from_fftlen(k, data->fftlen[i], data->n_mers[i]);
-  while (n<nmin)
+  n = n_max_from_fftlen(k, data->fftlen[i], data->n_mers[i]);
+  while (n < n_min)
   {
     i++;
-    n = nmax_from_fftlen(k, data->fftlen[i], data->n_mers[i]);
+    n = n_max_from_fftlen(k, data->fftlen[i], data->n_mers[i]);
   }
-  imin = i;
-  while (n<nmax)
+  i_min = i;
+  while (n < n_max)
   {
     i++;
-    n = nmax_from_fftlen(k, data->fftlen[i], data->n_mers[i]);
+    n = n_max_from_fftlen(k, data->fftlen[i], data->n_mers[i]);
   }
-  imax = i;
-/*  printf ("%ld %ld\n", fftlen[imin], fftlen[imax]); */
+  i_max = i;
+/*  printf ("%ld %ld\n", fftlen[i_min], fftlen[i_max]); */
 
 /* Check, if we have timings for each of the necessary FFT lengths */
-  for (i=imin; i<=imax; i++)
+  for (i = i_min; i <= i_max; i++)
   {
     if (data->msecs[i] < 0.0)
     {
-      printf("Sorry, there is no timing information for fftlen = %ld !\n", data->fftlen[i]);
-      exit(2);
+      snprintf(errorString, 100, "Sorry, there is no timing information for fftlen = %ld !\n", data->fftlen[i]);
+      append_error(data, errorString);
+      return -1.0;
     }
   }
 
@@ -171,57 +191,57 @@ double compute_average_time(llrtools_data_t *data, long k, long nmin, long nmax)
    msecs(n) is the time per iteration for given n.
 
    T_tot would be the total time, if we test 
-   every n out of the interval (nmin,nmax).
-   Therefore:     t_average = T_tot / (nmax - nmin)   */
+   every n out of the interval (n_min,n_max).
+   Therefore:     t_average = T_tot / (n_max - n_min)   */
   
-  T_tot  = data->msecs[imax]*(double)nmax*(double)nmax;
-  T_tot -= data->msecs[imin]*(double)nmin*(double)nmin;
+  T_tot  = data->msecs[i_max]*(double)n_max*(double)n_max;
+  T_tot -= data->msecs[i_min]*(double)n_min*(double)n_min;
   T_tot /= 2.0;
 
-  for (i=imin; i<imax; i++)
+  for (i = i_min; i < i_max; i++)
   {
-    n = nmax_from_fftlen(k, data->fftlen[i], data->n_mers[i]);
+    n = n_max_from_fftlen(k, data->fftlen[i], data->n_mers[i]);
     T_tot -= (double)n*(double)n*(data->msecs[i+1]-data->msecs[i])/2.0;
   }
   T_tot /= 1000.0;      /*  convert msec -> sec */
 
-  t_average = T_tot / (double)(nmax-nmin);
+  t_average = T_tot / (double)(n_max-n_min);
 
   if (k > 1048576)     /* different times in case of zero-padded FFT's */
     t_average *= 1.085;        /* use empirical scaling factor */
-  return(t_average);
+  return t_average;
 }
 
-void generate_list(llrtools_data_t *data, long k, long nmin, long nmax)
+void generate_list(llrtools_data_t *data, long k, long n_min, long n_max)
 /* list the FFT lengths and switching points 
-   for the interval (nmin,nmax) with k fixed */
+   for the interval (n_min,n_max) with k fixed */
 {
   int i;
-  int imin, imax;
-  long n, nz;
+  int i_min, i_max;
+  long n;
   i = 0;
-  n = nmax_from_fftlen(k, data->fftlen[i], data->n_mers[i]);
-  while (n<nmin)
+  n = n_max_from_fftlen(k, data->fftlen[i], data->n_mers[i]);
+  while (n < n_min)
   {
     i++;
-    n = nmax_from_fftlen(k, data->fftlen[i], data->n_mers[i]);
+    n = n_max_from_fftlen(k, data->fftlen[i], data->n_mers[i]);
   }
-  imin = i;
-  while (n<nmax)
+  i_min = i;
+  while (n < n_max)
   {
     i++;
-    n = nmax_from_fftlen(k, data->fftlen[i], data->n_mers[i]);
+    n = n_max_from_fftlen(k, data->fftlen[i], data->n_mers[i]);
   }
-  imax = i;
-/*  printf ("%ld %ld\n", fftlen[imin], fftlen[imax]); */
+  i_max = i;
+/*  printf ("%ld %ld\n", fftlen[i_min], fftlen[i_max]); */
 
   printf("\n");
   printf("The following FFT lengths would be used:\n\n");
   printf("    fftlen       " IT_ON "n_max" IT_OFF "\n");
   printf("-----------------------\n");
-  for (i=imin; i<=imax; i++)
+  for (i = i_min; i <= i_max; i++)
   {
-    n = nmax_from_fftlen(k, data->fftlen[i], data->n_mers[i]);
+    n = n_max_from_fftlen(k, data->fftlen[i], data->n_mers[i]);
     printf("%10ld %10ld\n", data->fftlen[i], n);
   }
 }
@@ -235,6 +255,7 @@ llrtools_times_t get_times(char *llr_file_name, char *maxlen_file_name, char *ms
   llrtools_data_t data;
   llrtools_times_t time_data;
 
+  data.errors[0] = '\0';
   time_data.term_count = -1L;
 
   if (!read_maxlen_file(&data, maxlen_file_name) || !read_msecs_file(&data, msecs_file_name))
@@ -268,4 +289,14 @@ llrtools_times_t get_times(char *llr_file_name, char *maxlen_file_name, char *ms
   time_data.average_time = time_data.total_time / time_data.term_count;
 
   return time_data;
+}
+
+static void append_error(llrtools_data_t *data, char *new_error) {
+	int errorsLength = strlen(data->errors);
+	int newErrorLength = strlen(new_error);
+	if (errorsLength + newErrorLength > ERROR_SIZE) {
+		fputs(data->errors, stderr);
+		data->errors[0] = '\0';
+	}
+	int charactersWritten = snprintf(data->errors, ERROR_SIZE, "%s%s\n", data->errors, new_error);
 }
