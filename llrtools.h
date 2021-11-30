@@ -5,6 +5,9 @@
 
 #define FFTLEN_SIZE 100
 
+#define IT_ON "\033[3m"
+#define IT_OFF "\033[m"
+
 typedef struct {
 	long fftlen[FFTLEN_SIZE];   /* list of FFT lengths */
 	long n_mers[FFTLEN_SIZE];   /* list of n_max (Mersenne) for FFT lengths */

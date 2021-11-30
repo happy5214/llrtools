@@ -217,7 +217,7 @@ void generate_list(llrtools_data_t *data, long k, long nmin, long nmax)
 
   printf("\n");
   printf("The following FFT lengths would be used:\n\n");
-  printf("    fftlen       \033[3mn\033[m_max\n");
+  printf("    fftlen       " IT_ON "n_max" IT_OFF "\n");
   printf("-----------------------\n");
   for (i=imin; i<=imax; i++)
   {
