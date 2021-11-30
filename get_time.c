@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
     return 2;
   }
 
-  printf("number of (\033[3mk,n\033[m) pairs in file: %ld\n", time_data.term_count);
+  printf("number of (" IT_ON "k,n" IT_OFF ") pairs in file: %ld\n", time_data.term_count);
   printf("estimated total time for LLR testing the whole file: %.3f sec\n", time_data.total_time);
   printf("average time per LLR test: %.3f sec\n", time_data.average_time);
 

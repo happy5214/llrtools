@@ -32,10 +32,10 @@ int main(int argc, char *argv[])
     return 1;
   }
 
-  printf("\033[3mk\033[m = "); scanf("%ld", &k);
+  printf(IT_ON "k" IT_OFF " = "); scanf("%ld", &k);
 
-  printf("\033[3mn\033[m (min) = "); scanf("%ld", &nmin);
-  printf("\033[3mn\033[m (max) = "); scanf("%ld", &nmax);
+  printf(IT_ON "n" IT_OFF " (min) = "); scanf("%ld", &nmin);
+  printf(IT_ON "n" IT_OFF " (max) = "); scanf("%ld", &nmax);
 
   average_time = compute_average_time(&data, k, nmin, nmax);
 
