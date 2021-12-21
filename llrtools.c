@@ -11,6 +11,14 @@
 
 static void append_error(llrtools_data_t *data, char *new_error);
 
+void generate_data_file_name(char *output_file_name, int output_file_name_size, char *base_folder_name, int argc_adjusted, char **device_name) {
+  if (argc_adjusted > 0) {
+    snprintf(output_file_name, output_file_name_size, "%s/%s", base_folder_name, *device_name);
+  } else {
+    snprintf(output_file_name, output_file_name_size, "%s/default", base_folder_name);
+  }
+}
+
 int read_msecs_file(llrtools_data_t *data, char *file_name)      /* read timings from file */
 {
   FILE *ms_file;

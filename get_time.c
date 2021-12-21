@@ -17,11 +17,16 @@ int main(int argc, char *argv[])
 
   if (argc < 2)
   {
-     printf("usage: %s <LLR-inputfile>\n", argv[0]);
+     printf("usage: %s <LLR-inputfile> [device]\n", argv[0]);
      exit(1);
   }
 
-  time_data = get_times(argv[1], "maxlen.txt", "times.txt");
+  char maxlen_filename[30];
+  char times_filename[30];
+  generate_data_file_name(maxlen_filename, 30, "maxlen", argc - 2, argv + 2);
+  generate_data_file_name(times_filename, 30, "times", argc - 2, argv + 2);
+
+  time_data = get_times(argv[1], maxlen_filename, times_filename);
   if (time_data.term_count < -1) {
     return 1;
   } else if (time_data.term_count == 0) {

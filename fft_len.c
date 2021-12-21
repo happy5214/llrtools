@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include "llrtools.h"
 
-int main(void)
+int main(int argc, char *argv[])
 {
   long k, nmin, nmax;
   int i;
@@ -15,7 +15,10 @@ int main(void)
 
   data.errors[0] = '\0';
 
-  if (!read_maxlen_file(&data, "maxlen.txt")) {    /* init fftlen and nmers arrays */
+  char maxlen_filename[30];
+  generate_data_file_name(maxlen_filename, 30, "maxlen", argc - 1, argv + 1);
+
+  if (!read_maxlen_file(&data, maxlen_filename)) {    /* init fftlen and nmers arrays */
     return 1;
   }
 

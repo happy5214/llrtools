@@ -26,6 +26,7 @@ typedef struct {
 	long term_count;
 } llrtools_times_t;
 
+void generate_data_file_name(char *output_file_name, int output_file_name_size, char *base_folder_name, int argc_adjusted, char **device_name);
 int read_msecs_file(llrtools_data_t *data, char *file_name);
 int read_maxlen_file(llrtools_data_t *data, char *file_name);
 int fftlen_from_k_and_n(llrtools_data_t *data, long k, long n);
